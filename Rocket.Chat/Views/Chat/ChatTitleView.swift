@@ -1,0 +1,95 @@
+//
+//  ChatTitleView.swift
+//  Rocket.Chat
+//
+//  Created by Rafael K. Streit on 10/10/16.
+//  Copyright © 2016 Rocket.Chat. All rights reserved.
+//
+
+import UIKit
+
+final class ChatTitleView: UIView {
+    @IBOutlet weak var icon: UIImageView! {
+        didSet {
+            icon.layer.cornerRadius = 3
+            icon.layer.masksToBounds = true
+        }
+    }
+    @IBOutlet weak var labelTitle: UILabel! {
+        didSet {
+            labelTitle.textColor = UIColor.white
+        }
+    }
+    @IBOutlet weak var iconBackLabel: UILabel! {
+        didSet {
+            iconBackLabel.layer.cornerRadius = 3
+            iconBackLabel.layer.masksToBounds = true
+           // iconBackLabel.backgroundColor = UIColor.clear
+        }
+    }
+    
+    @IBOutlet weak var imageArrowDown: UIImageView! {
+        didSet {
+            imageArrowDown.image = imageArrowDown.image?.imageWithTint(.RCGray())
+        }
+    }
+
+    override var intrinsicContentSize: CGSize {
+        return UILayoutFittingExpandedSize
+    }
+    
+    private func userAvatarURL(nameUser : String) -> URL? {
+        let username = nameUser
+        Log.debug("usernamevid-  \(username)")
+        guard let auth = AuthManager.isAuthenticated() else { return nil }
+        guard let baseURL = auth.baseURL() else { return nil }
+        guard let encodedUsername = username.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) else { return nil }
+        Log.debug("url to show \(baseURL)/avatar/\(encodedUsername)")
+        return URL(string: "\(baseURL)/avatar/\(encodedUsername)")
+    }
+
+    var subscription: Subscription! {
+        didSet {
+            labelTitle.text = subscription.displayName()
+            switch subscription.type {
+            case .channel:
+                icon.image = UIImage(named: "Groupnew")?.imageWithTint(UIColor.white)
+                iconBackLabel.backgroundColor = UIColor.clear
+            case .directMessage:
+                var color = UIColor.RCGray()
+
+                if let user = subscription.directMessageUser {
+                    color = { _ -> UIColor in
+                        switch user.status {
+                        case .online: return .RCOnline()
+                        case .offline: return .RCGray()
+                        case .away: return .RCAway()
+                        case .busy: return .RCBusy()
+                        }
+                    }(())
+                }
+                
+                if color == UIColor.RCGray()
+                {
+                    iconBackLabel.isHidden = true
+                }
+                else {
+                    iconBackLabel.isHidden = false
+                }
+                var imageURL: URL?
+                imageURL = userAvatarURL(nameUser: subscription.name)
+                if let imageURL = imageURL {
+                    icon.sd_setImage(with: imageURL, completed: nil)
+                    iconBackLabel.backgroundColor = color
+                }else {
+                    icon.image = UIImage(named: "User-Profile")?.imageWithTint(color)
+                }
+               // icon.image = UIImage(named: "Mention")?.imageWithTint(color)
+            case .group:
+                icon.image = UIImage(named: "Groupnew")?.imageWithTint(UIColor.white)
+                 iconBackLabel.backgroundColor = UIColor.clear
+            }
+        }
+    }
+
+}

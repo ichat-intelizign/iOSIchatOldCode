@@ -1,0 +1,162 @@
+//
+//  SubscriptionCell.swift
+//  Rocket.Chat
+//
+//  Created by Rafael K. Streit on 8/4/16.
+//  Copyright © 2016 Rocket.Chat. All rights reserved.
+//
+
+import UIKit
+
+final class SubscriptionCell: UITableViewCell {
+
+    static let identifier = "CellSubscription"
+
+    internal let labelSelectedTextColor = UIColor(rgb: 0xFFFFFF, alphaVal: 1)
+    internal let labelReadTextColor = UIColor(rgb: 0x9ea2a4, alphaVal: 1)
+    internal let labelUnreadTextColor = UIColor(rgb: 0xFFFFFF, alphaVal: 1)
+
+    internal let defaultBackgroundColor = UIColor.clear
+    internal let selectedBackgroundColor = UIColor(rgb: 0x0, alphaVal: 0.18)
+    internal let highlightedBackgroundColor = UIColor(rgb: 0x0, alphaVal: 0.27)
+    var user: User?
+    var subscription: Subscription? {
+        didSet {
+            updateSubscriptionInformatin()
+        }
+    }
+    @IBOutlet weak var viewBorderstatus: UIView!
+    @IBOutlet weak var imageViewIcon: UIImageView! {
+        didSet {
+            imageViewIcon.layer.cornerRadius = 3
+            imageViewIcon.layer.masksToBounds = true
+        }
+    }
+    @IBOutlet weak var labelName: UILabel!
+    @IBOutlet weak var labelUnread: UILabel! {
+        didSet {
+            labelUnread.layer.cornerRadius = 2
+        }
+    }
+
+    func updateSubscriptionInformatin() {
+        guard let subscription = self.subscription else { return }
+
+        updateIconImage()
+        if subscription.type == .channel || subscription.type == .group {
+            labelName.text = subscription.displayName()
+        } else {
+            labelName.text = subscription.displayName().capitalized
+        }
+
+
+        if subscription.unread > 0 || subscription.alert {
+            labelName.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+            labelName.textColor = labelUnreadTextColor
+        } else {
+            labelName.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+            labelName.textColor = labelReadTextColor
+        }
+
+        labelUnread.alpha = subscription.unread > 0 ? 1 : 0
+        labelUnread.text = "\(subscription.unread)"
+    }
+    
+    private func userAvatarURL(nameUser : String) -> URL? {
+         let username = nameUser
+        Log.debug("usernamevid-  \(username)")
+        guard let auth = AuthManager.isAuthenticated() else { return nil }
+        guard let baseURL = auth.baseURL() else { return nil }
+        guard let encodedUsername = username.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) else { return nil }
+        Log.debug("urluser \("https://ichat.intelizi.com/")/avatar/\(encodedUsername)")
+        return URL(string: "\(baseURL)/avatar/\(encodedUsername)")
+    }
+
+    func updateIconImage() {
+        guard let subscription = self.subscription else { return }
+
+        switch subscription.type {
+        case .channel:
+            imageViewIcon.image = UIImage(named: "Groupnew")?.imageWithTint(.RCInvisible())
+             viewBorderstatus.layer.borderWidth = 0
+        case .directMessage:
+            var color: UIColor = .RCInvisible()
+
+            if let user = subscription.directMessageUser {
+                color = { _ -> UIColor in
+                    switch user.status {
+                    case .online:
+                        return .RCOnline()
+                    case .offline:
+                        return .RCInvisible()
+                    case .away:
+                        return .RCAway()
+                    case .busy:
+                        return .RCBusy()
+                    }
+                }(())
+            }
+            if color == UIColor.RCInvisible() {
+                viewBorderstatus.isHidden = true
+            } else {
+                viewBorderstatus.isHidden = false
+            }
+            var imageURL: URL?
+            imageURL = userAvatarURL(nameUser: subscription.name)
+            if let imageURL = imageURL {
+                imageViewIcon.sd_setImage(with: imageURL, completed: nil)
+            } else {
+                imageViewIcon.image = UIImage(named: "User-Profile")?.imageWithTint(color)
+            }
+            if imageViewIcon.image == nil
+            {
+                imageViewIcon.image = UIImage(named: "User-Profile")?.imageWithTint(color)
+            }
+           // imageViewIcon.image = UIImage(named: "User-Profile")?.imageWithTint(color)
+            viewBorderstatus.layer.cornerRadius = 4
+            viewBorderstatus.layer.borderColor = color.cgColor
+            viewBorderstatus.layer.borderWidth = 2.5
+        case .group:
+            imageViewIcon.image = UIImage(named: "Groupnew")?.imageWithTint(.RCInvisible())
+            viewBorderstatus.layer.borderWidth = 0
+        }
+    }
+
+}
+
+extension SubscriptionCell {
+
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        let transition = {
+            switch selected {
+            case true:
+                self.backgroundColor = self.selectedBackgroundColor
+            case false:
+                self.backgroundColor = self.defaultBackgroundColor
+            }
+        }
+
+        if animated {
+            UIView.animate(withDuration: 0.18, animations: transition)
+        } else {
+            transition()
+        }
+    }
+
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        let transition = {
+            switch highlighted {
+            case true:
+                self.backgroundColor = self.highlightedBackgroundColor
+            case false:
+                self.backgroundColor = self.defaultBackgroundColor
+            }
+        }
+
+        if animated {
+            UIView.animate(withDuration: 0.18, animations: transition)
+        } else {
+            transition()
+        }
+    }
+}

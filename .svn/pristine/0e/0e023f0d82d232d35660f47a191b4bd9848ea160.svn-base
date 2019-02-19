@@ -1,0 +1,54 @@
+//
+//  ChannelInfoUserCell.swift
+//  Rocket.Chat
+//
+//  Created by Rafael Kellermann Streit on 10/03/17.
+//  Copyright © 2017 Rocket.Chat. All rights reserved.
+//
+
+import UIKit
+
+struct ChannelInfoUserCellData: ChannelInfoCellDataProtocol {
+    let cellType = ChannelInfoUserCell.self
+    var user: User?
+}
+
+class ChannelInfoUserCell: UITableViewCell, ChannelInfoCellProtocol {
+    typealias DataType = ChannelInfoUserCellData
+    static let identifier = "kChannelInfoCellUser"
+    static let defaultHeight: Float = 292
+    var data: DataType? {
+        didSet {
+           // labelTitle.text = data?.user?.username
+           // labelSubtitle.text = data?.user?.name
+            avatarView.user = data?.user
+        }
+    }
+
+    @IBOutlet weak var avatarViewContainer: UIView! {
+        didSet {
+            if let avatarView = AvatarView.instantiateFromNib() {
+                avatarView.frame = avatarViewContainer.bounds
+                avatarViewContainer.layer.cornerRadius = 4
+                avatarViewContainer.layer.masksToBounds = true
+                avatarViewContainer.layer.borderWidth = 5
+                avatarViewContainer.layer.borderColor = UIColor.white.cgColor
+                avatarViewContainer.addSubview(avatarView)
+                self.avatarView = avatarView
+            }
+        }
+    }
+
+    weak var avatarView: AvatarView! {
+        didSet {
+            avatarView.layer.cornerRadius = 4
+           // avatarView.layer.masksToBounds = true
+            avatarView.layer.borderWidth = 5
+            avatarView.layer.borderColor = UIColor.white.cgColor
+        }
+    }
+
+    @IBOutlet weak var labelTitle: UILabel!
+    @IBOutlet weak var labelSubtitle: UILabel! 
+
+}

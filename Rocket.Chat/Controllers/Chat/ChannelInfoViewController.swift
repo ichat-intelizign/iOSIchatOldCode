@@ -1,0 +1,512 @@
+//
+//  ChannelInfoViewController.swift
+//  Rocket.Chat
+//
+//  Created by Rafael Kellermann Streit on 09/03/17.
+//  Copyright © 2017 Rocket.Chat. All rights reserved.
+//
+
+import UIKit
+import Fontello_Swift
+import MessageUI
+import SafariServices
+fileprivate typealias ListSegueData = (title: String, query: String?)
+
+class ChannelInfoViewController: BaseViewController {
+
+    var tableViewData: [[Any]] = [] {
+        didSet {
+        //    tableView?.reloadData()
+        }
+    }
+    var nameofuser: String = ""
+    var frommemberlist: String?
+    var activityIndicator: LoaderView!
+    @IBOutlet weak var activityIndicatorContainer: UIView! {
+        didSet {
+            let width = activityIndicatorContainer.bounds.width
+            let height = activityIndicatorContainer.bounds.height
+            let frame = CGRect(x: 0, y: 0, width: width, height: height)
+            let activityIndicator = LoaderView(frame: frame)
+            activityIndicatorContainer.addSubview(activityIndicator)
+            self.activityIndicator = activityIndicator
+        }
+    }
+
+    var subscription: Subscription? {
+        didSet {
+            guard let subscription = self.subscription else { return }
+            Log.debug("subdata - \(subscription)")
+        }
+    }
+    @IBOutlet weak var lblTime: UILabel! {
+        didSet {
+            lblTime.font = FontAwesome.fontOfSize(17)
+            lblTime.text = FontAwesome.stringWithName(.Clock)
+        }
+    }
+    @IBOutlet weak var lblbuilding: UILabel! {
+        didSet {
+            lblbuilding.font = FontAwesome.fontOfSize(17)
+            lblbuilding.text = FontAwesome.stringWithName(.Building)
+        }
+    }
+    @IBOutlet weak var lblLastLogin: UILabel! {
+        didSet {
+            lblLastLogin.font = FontAwesome.fontOfSize(17)
+            lblLastLogin.text = FontAwesome.stringWithName(.Login)
+        }
+    }
+    @IBOutlet weak var lblCall: UILabel! {
+        didSet {
+            lblCall.font = FontAwesome.fontOfSize(17)
+            lblCall.text = FontAwesome.stringWithName(.Phone)
+        }
+    }
+    @IBOutlet weak var lblMail: UILabel! {
+        didSet {
+            lblMail.font = FontAwesome.fontOfSize(17)
+            lblMail.text = FontAwesome.stringWithName(.Mail)
+        }
+    }
+    @IBOutlet weak var lblShield: UILabel! {
+        didSet {
+            lblShield.font = FontAwesome.fontOfSize(17)
+            lblShield.text = FontAwesome.stringWithName(.Shield)
+        }
+    }
+    @IBOutlet weak var labelTitle: UILabel! {
+        didSet {
+            labelTitle.textColor = UIColor.white
+        }
+    }
+    @IBOutlet weak var lblTimeText: UILabel!
+    @IBOutlet weak var lblMailText: UILabel!
+    @IBOutlet weak var lblCallText: UILabel! {
+        didSet {
+            lblCallText.textColor = UIColor.white
+        }
+    }
+    @IBOutlet weak var lblBuildingText: UILabel!
+    @IBOutlet weak var lblLoginText: UILabel!
+    @IBOutlet weak var viewimgBck: UIView! {
+        didSet {
+            viewimgBck.layer.cornerRadius = 3
+            viewimgBck.layer.masksToBounds = true
+            viewimgBck.layer.borderWidth = 5
+            viewimgBck.layer.borderColor = UIColor.white.cgColor
+        }
+    }
+   @IBOutlet weak var userImage: UIImageView! {
+        didSet {
+            userImage.layer.cornerRadius = 3
+            userImage.layer.masksToBounds = true
+        }
+    }
+    @IBOutlet weak var lblUserName: UILabel! {
+        didSet {
+            lblUserName.text = subscription?.fname
+        }
+    }
+    @IBOutlet weak var tableView: UITableView!
+    weak var buttonFavorite: UIBarButtonItem?
+    var yourArray = [String]()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        if frommemberlist == "member" {
+            var imageURL: URL?
+            imageURL = userAvatarURL(nameUser: (nameofuser))
+            userImage.sd_setImage(with: imageURL, completed: nil)
+            downloadFileFromURL(name: nameofuser)
+            if userImage.image == nil {
+                userImage.image = UIImage(named: "proimg")
+            }
+        } else  if frommemberlist == "chatcell" {
+            var imageURL: URL?
+            imageURL = userAvatarURL(nameUser: (nameofuser))
+            userImage.sd_setImage(with: imageURL, completed: nil)
+            downloadFileFromURL(name: nameofuser)
+            if userImage.image == nil {
+                userImage.image = UIImage(named: "proimg")
+            }
+        }
+        else {
+            var imageURL: URL?
+            imageURL = userAvatarURL(nameUser: (subscription?.name)!)
+            userImage.sd_setImage(with: imageURL, completed: nil)
+            downloadFileFromURL(name: (subscription?.name)!)
+            if userImage.image == nil {
+                userImage.image = UIImage(named: "proimg")
+            }
+        }
+        title = localized("chat.info.title")
+        view.bringSubview(toFront: activityIndicatorContainer)
+
+         self.activityIndicatorContainer.isHidden = false
+        self.activityIndicator.startAnimating()
+    
+       // sendRequest("https://ichat.intelizi.com//api/v1/users.info", parameters: ["username": (subscription?.name ?? "")])
+        //showMembersList()
+        let gestureCall = UITapGestureRecognizer(target: self, action: #selector(makeCall))
+        lblCallText?.addGestureRecognizer(gestureCall)
+        let gestureMail = UITapGestureRecognizer(target: self, action: #selector(cellContactDidPressed))
+        lblMailText?.addGestureRecognizer(gestureMail)
+
+        if let settings = AuthSettingsManager.settings {
+            if settings.favoriteRooms {
+                let defaultImage = UIImage(named: "Star")?.imageWithTint(UIColor.RCGray()).withRenderingMode(.alwaysOriginal)
+                let buttonFavorite = UIBarButtonItem(image: defaultImage, style: .plain, target: self, action: #selector(buttonFavoriteDidPressed))
+                if frommemberlist == "hide" {
+                      navigationItem.rightBarButtonItem = buttonFavorite
+                }
+                else {
+                     navigationItem.rightBarButtonItem = buttonFavorite
+                }
+
+                self.buttonFavorite = buttonFavorite
+                updateButtonFavoriteImage()
+            }
+        }
+    }
+    private func userAvatarURL(nameUser: String) -> URL? {
+        let username = nameUser
+        Log.debug("usernamevid-  \(username)")
+        guard let auth = AuthManager.isAuthenticated() else { return nil }
+        guard let baseURL = auth.baseURL() else { return nil }
+        guard let encodedUsername = username.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) else { return nil }
+        Log.debug("url to show \(baseURL)/avatar/\(encodedUsername)")
+        return URL(string: "\(baseURL)/avatar/\(encodedUsername)")
+    }
+
+    @objc func makeCall() {
+        print("calling..")
+
+        if let url = URL(string: "tel://\(self.lblCallText.text ?? "nonumber")"), UIApplication.shared.canOpenURL(url) {
+            if #available(iOS 10, *) {
+                UIApplication.shared.open(url)
+            } else {
+                UIApplication.shared.openURL(url)
+            }
+        }
+    }
+    
+    @objc func cellContactDidPressed() {
+        print("sending mail..")
+       // showStarredList()
+        if !MFMailComposeViewController.canSendMail() {
+            let alert = UIAlertController(
+                title: localized("alert.settings.set_mail_app.title"),
+                message: localized("alert.settings.set_mail_app.message"),
+                preferredStyle: .alert
+            )
+            
+            alert.addAction(UIAlertAction(title: localized("global.ok"), style: .default, handler: nil))
+            present(alert, animated: true, completion: nil)
+            return
+        }
+        let controller = MFMailComposeViewController()
+        controller.mailComposeDelegate = self
+        controller.setToRecipients([self.lblMailText.text!])
+        present(controller, animated: true, completion: nil)
+    }
+   
+    func downloadFileFromURL(name : String) {
+        API.shared.fetch(UserInfoRequest(username: name)) { result in
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                self.activityIndicatorContainer.isHidden = true
+                let formatter = DateFormatter()
+                // initially set the format based on your datepicker date
+                formatter.dateFormat = "h:mm a"
+                let myString = formatter.string(from: Date())
+                self.lblTimeText.text = "\(myString) UTC(+\(result?.utcOffset ?? 0.0))"
+                if let user = result?.name {
+                    print("nameuser- \(user)")
+                    self.lblUserName.text = user
+                } else{
+                     self.lblUserName.text = "-"
+                }
+
+                if let username = result?.username {
+                    print("username- \(username)")
+                    self.labelTitle.text = username
+                } else{
+                    self.labelTitle.text = "-"
+                }
+                if let phone = result?.phone {
+                    print("phone- \(phone)")
+                    self.lblCallText.text = phone
+                } else{
+                    self.lblCallText.text = "-"
+                }
+                if let lastLogin = result?.lastLogin {
+                    print("lastLogin- \(lastLogin)")
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+                    dateFormatter.timeZone = NSTimeZone(name: "UTC")! as TimeZone
+                    let date = dateFormatter.date(from: lastLogin)
+                    
+                    // change to a readable time format and change to local time zone
+                    dateFormatter.dateFormat = "EEE, MMM d, yyyy - h:mm a"
+                    dateFormatter.timeZone = NSTimeZone.local
+                    let timeStamp = dateFormatter.string(from: date!)
+                    self.lblLoginText.text = "\(timeStamp) UTC(+\(result?.utcOffset ?? 0.0))"
+                } else{
+                    self.lblLoginText.text = "-"
+                }
+                if let location = result?.location {
+                    print("location- \(location)")
+                    self.lblBuildingText.text = location
+                } else{
+                    self.lblBuildingText.text = "-"
+                }
+                if let email = result?.emails {
+                    print("email- \(email[0]["address"])")
+                    self.lblMailText.text = ("\(email[0]["address"])")
+                } else{
+                    self.lblMailText.text = "-"
+                }
+                if let id = result?.username {
+              let auth: Auth? = AuthManager.isAuthenticated()
+                  let newsubscription = auth?.subscriptions.filter("name = %@", id).first
+                    self.subscription = newsubscription
+                    print("newsubscription - \(newsubscription)")
+                    self.updateButtonFavoriteImage()
+                }
+              //  Auth?.subscriptions.filter("rid = %@", roomId).first
+            }
+          // print("resultarray - \(result?.emails ?? "Mail not available")")
+        }
+    }
+
+  
+    func updateButtonFavoriteImage(_ force: Bool = false, value: Bool = false) {
+        guard let buttonFavorite = self.buttonFavorite else { return }
+        let favorite = force ? value : subscription?.favorite ?? false
+        var image: UIImage?
+
+        if favorite {
+            image = UIImage(named: "Star-Filled")?.imageWithTint(UIColor.RCFavoriteMark())
+        } else {
+            image = UIImage(named: "Star")?.imageWithTint(UIColor.RCGray())
+        }
+
+        buttonFavorite.image = image?.withRenderingMode(.alwaysOriginal)
+    }
+
+    func showMembersList() {
+        if self.navigationController != nil {
+            let loginVC = UIStoryboard(name: "Chat", bundle: nil).instantiateViewController(withIdentifier: "MembersListViewController") as? MembersListViewController
+            loginVC?.data.subscription = self.subscription
+            self.navigationController?.pushViewController(loginVC!, animated: true)
+        }
+      // self.performSegue(withIdentifier: "toMembersList", sender: self)
+    }
+    
+//    static func getAvatarImg(byName name: String, completion: @escaping MessageCompletion) {
+//            let request = [
+//                "msg": "method",
+//                "method": "avatar",
+//                "params": ["c", name]
+//                ] as [String: Any]
+//
+//            SocketManager.send(request) { response in
+//                guard !response.isError() else { return Log.debug("result of member-\(response.result.string ?? "no data")") }
+//                completion(response)
+//            }
+//        }
+
+    func showPinnedList() {
+        let data = ListSegueData(title: localized("chat.messages.pinned.list.title"), query: "{\"pinned\":true}")
+        self.performSegue(withIdentifier: "toMessagesList", sender: data)
+    }
+
+    func showStarredList() {
+        guard let userId = AuthManager.currentUser()?.identifier else {
+            alert(title: localized("error.socket.default_error_title"), message: "error.socket.default_error_message")
+            return
+        }
+
+        let data = ListSegueData(title: localized("chat.messages.starred.list.title"), query: "{\"starred._id\":{\"$in\":[\"\(userId)\"]}}")
+        self.performSegue(withIdentifier: "toMessagesList", sender: data)
+    }
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+//        if let membersList = segue.destination as? MembersListViewController {
+//            membersList.data.subscription = self.subscription
+//        }
+
+        if let messagesList = segue.destination as? MessagesListViewController {
+
+            messagesList.data.subscription = self.subscription
+
+            if let segueData = sender as? ListSegueData {
+                messagesList.data.title = segueData.title
+                messagesList.data.query = segueData.query
+            }
+        }
+    }
+
+    // MARK: IBAction
+
+    @objc func buttonFavoriteDidPressed(_ sender: Any) {
+        guard let subscription = self.subscription else { return }
+
+        SubscriptionManager.toggleFavorite(subscription) { [unowned self] (response) in
+            if response.isError() {
+                subscription.updateFavorite(!subscription.favorite)
+            }
+
+            self.updateButtonFavoriteImage()
+        }
+
+        self.subscription?.updateFavorite(!subscription.favorite)
+        updateButtonFavoriteImage()
+         NotificationCenter.default.post(name: Notification.Name("NotificationIdentifiertbl"), object: nil)
+    }
+
+    @IBAction func buttonCloseDidPressed(_ sender: Any) {
+        if frommemberlist == "member" {
+            self.navigationController?.popViewController(animated: true)
+        } else if frommemberlist == "name" {
+            self.navigationController?.popViewController(animated: true)
+        } else if frommemberlist == "chatcell"
+        {
+            dismiss(animated: true, completion: nil)
+        } else{
+            dismiss(animated: true, completion: nil)
+        }
+    }
+
+}
+
+// MARK: UITableViewDelegate
+
+extension ChannelInfoViewController: UITableViewDelegate {
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let data = tableViewData[indexPath.section][indexPath.row]
+
+//        if let data = data as? ChannelInfoBasicCellData {
+//            if let cell = tableView.dequeueReusableCell(withIdentifier: ChannelInfoBasicCell.identifier) as? ChannelInfoBasicCell {
+//                cell.data = data
+//                return cell
+//            }
+//        }
+
+        if indexPath.section == 1 {
+            if let cell = tableView.dequeueReusableCell(withIdentifier: ChannelInfoDetailCell.identifier) as? ChannelInfoDetailCell {
+                let obj = yourArray[indexPath.row]
+                cell.lblCallText.text = obj
+                cell.lblMailText.text = "ds"
+                cell.lblTimeText.text = "ds"
+                cell.lblBuildingText.text = "ds"
+                cell.lblLoginText.text = "ds"
+                return cell
+            }
+        }
+
+        if indexPath.section == 0 {
+            if let cell = tableView.dequeueReusableCell(withIdentifier: ChannelInfoUserCell.identifier) as? ChannelInfoUserCell {
+                cell.labelSubtitle.text = subscription?.fname
+                if let data = data as? ChannelInfoUserCellData {
+                    cell.data = data
+                }
+                return cell
+            }
+        }
+
+//        if let data = data as? ChannelInfoDescriptionCellData {
+//            if let cell = tableView.dequeueReusableCell(withIdentifier: ChannelInfoDescriptionCell.identifier) as? ChannelInfoDescriptionCell {
+//                cell.data = data
+//                return cell
+//            }
+//        }
+
+        return UITableViewCell()
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        //let data = tableViewData[indexPath.section][indexPath.row]
+
+//        if data as? ChannelInfoBasicCellData != nil {
+//            return CGFloat(ChannelInfoBasicCell.defaultHeight)
+//        }
+
+        if indexPath.section == 1 {
+            return CGFloat(ChannelInfoDetailCell.defaultHeight)
+        }
+
+        if indexPath.section == 0  {
+            return CGFloat(ChannelInfoUserCell.defaultHeight)
+        }
+
+//        if data as? ChannelInfoDescriptionCellData != nil {
+//            return CGFloat(ChannelInfoDescriptionCell.defaultHeight)
+//        }
+
+        return CGFloat(0)
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let data = tableViewData[indexPath.section][indexPath.row]
+        showPinnedList()
+//        if let data = data as? ChannelInfoDetailCellData {
+//            guard let action = data.action else {
+//                alert(title: localized("alert.feature.wip.title"), message: localized("alert.feature.wip.message"))
+//                return
+//            }
+//
+//            action()
+//
+//            if let selectedIndex = tableView.indexPathForSelectedRow {
+//                tableView.deselectRow(at: selectedIndex, animated: true)
+//            }
+//        }
+    }
+}
+
+class UserInfo {
+    var userID: String?
+    var time: String?
+    var userEmail: [Email] = []
+    var lastlogin: String?
+    var phone: String?
+    var location: String?
+}
+
+
+
+// MARK: UITableViewDataSource
+extension Date {
+    
+    var currentUTCTimeZoneDate: String {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.amSymbol = "AM"
+        formatter.pmSymbol = "PM"
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        
+        return formatter.string(from: self)
+    }
+}
+extension ChannelInfoViewController: MFMailComposeViewControllerDelegate {
+    
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+}
+extension ChannelInfoViewController: UITableViewDataSource {
+
+    func numberOfSections(in tableView: UITableView) -> Int {
+        print("countsection- \(tableViewData.count)")
+        return 2
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+         print("countsection2- \(tableViewData[section].count)")
+        return 1
+    }
+
+}

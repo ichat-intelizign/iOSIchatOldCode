@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="C2N-In-I9l">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="lobster-two.regular.ttf">
+            <string>LobsterTwo</string>
+        </array>
+    </customFonts>
+    <scenes>
+        <!--Main Dashboard View Controller-->
+        <scene sceneID="nhe-p9-Fdn">
+            <objects>
+                <viewController id="C2N-In-I9l" customClass="MainDashboardViewController" customModule="iChat" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="fqb-p3-PfF"/>
+                        <viewControllerLayoutGuide type="bottom" id="afN-Bd-rft"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="4oR-xV-8Vw">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <viewLayoutGuide key="safeArea" id="bQy-5Q-6my"/>
+                    </view>
+                    <connections>
+                        <segue destination="9ge-VQ-XJh" kind="custom" identifier="containSideMenu" customClass="SideContainmentSegue" customModule="SideMenuController" id="zXi-vV-QAI"/>
+                        <segue destination="bV4-75-Hgb" kind="custom" identifier="showCenterController" customClass="CenterContainmentSegue" customModule="SideMenuController" id="RB6-Yu-hjX"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="DRx-uW-x1d" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-615" y="657"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="oZX-ga-QwD">
+            <objects>
+                <navigationController storyboardIdentifier="Chat" automaticallyAdjustsScrollViewInsets="NO" id="bV4-75-Hgb" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="sgo-jA-I5u">
+                        <rect key="frame" x="0.0" y="20" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="barTintColor" red="0.34509803919999998" green="0.81960784310000001" blue="0.91372549020000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="9qD-JS-6Js" kind="relationship" relationship="rootViewController" id="PDe-K7-dAv"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="mc4-V8-tSd" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="545" y="656"/>
+        </scene>
+        <!--Dashboard View Controller-->
+        <scene sceneID="BlD-bE-rH1">
+            <objects>
+                <viewController id="9qD-JS-6Js" customClass="DashboardViewController" customModule="iChat" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="TUA-k4-mcj">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Good Morning" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fBQ-2F-Gfj">
+                                <rect key="frame" x="53" y="149" width="268" height="51"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="51" id="T1Q-Tf-bBF"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="LobsterTwo" family="Lobster Two" pointSize="24"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Vaibhav Mane" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OMW-Zh-2jt">
+                                <rect key="frame" x="16" y="190" width="343" height="37"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="37" id="Mtb-6T-2Ek"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="LobsterTwo" family="Lobster Two" pointSize="31"/>
+                                <color key="textColor" red="0.34509803919999998" green="0.81960784310000001" blue="0.91372549020000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Welcome back to iChat :)" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ETa-dz-Alr">
+                                <rect key="frame" x="16" y="235" width="343" height="51"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="51" id="2XQ-jD-mOQ"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="LobsterTwo" family="Lobster Two" pointSize="23"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="home-pageimg.png" translatesAutoresizingMaskIntoConstraints="NO" id="pqf-Ek-2Bu">
+                                <rect key="frame" x="24" y="394" width="328" height="141"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="141" id="N6M-Da-RUb"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="gHN-3Q-9TM" firstAttribute="trailing" secondItem="fBQ-2F-Gfj" secondAttribute="trailing" constant="54" id="2Sd-ob-nZT"/>
+                            <constraint firstItem="pqf-Ek-2Bu" firstAttribute="leading" secondItem="gHN-3Q-9TM" secondAttribute="leading" constant="24" id="2oI-fT-ROv"/>
+                            <constraint firstItem="ETa-dz-Alr" firstAttribute="leading" secondItem="gHN-3Q-9TM" secondAttribute="leading" constant="16" id="7VS-mA-R4A"/>
+                            <constraint firstItem="gHN-3Q-9TM" firstAttribute="trailing" secondItem="pqf-Ek-2Bu" secondAttribute="trailing" constant="23" id="EY8-Vs-PA4"/>
+                            <constraint firstItem="OMW-Zh-2jt" firstAttribute="top" secondItem="fBQ-2F-Gfj" secondAttribute="bottom" constant="-10" id="Jr2-L7-uBd"/>
+                            <constraint firstItem="gHN-3Q-9TM" firstAttribute="bottom" secondItem="pqf-Ek-2Bu" secondAttribute="bottom" constant="132" id="TSg-CT-A3C"/>
+                            <constraint firstItem="gHN-3Q-9TM" firstAttribute="trailing" secondItem="OMW-Zh-2jt" secondAttribute="trailing" constant="16" id="VQ8-Lt-VV5"/>
+                            <constraint firstItem="gHN-3Q-9TM" firstAttribute="trailing" secondItem="ETa-dz-Alr" secondAttribute="trailing" constant="16" id="bV0-aQ-ANy"/>
+                            <constraint firstItem="OMW-Zh-2jt" firstAttribute="leading" secondItem="gHN-3Q-9TM" secondAttribute="leading" constant="16" id="hnT-Bt-6gm"/>
+                            <constraint firstItem="ETa-dz-Alr" firstAttribute="top" secondItem="OMW-Zh-2jt" secondAttribute="bottom" constant="8" id="oSj-bu-qbt"/>
+                            <constraint firstItem="fBQ-2F-Gfj" firstAttribute="top" secondItem="gHN-3Q-9TM" secondAttribute="top" constant="85" id="ozt-N3-h1g"/>
+                            <constraint firstItem="fBQ-2F-Gfj" firstAttribute="leading" secondItem="gHN-3Q-9TM" secondAttribute="leading" constant="53" id="wbE-TC-jbh"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="gHN-3Q-9TM"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="lQZ-Re-wCO"/>
+                    <connections>
+                        <outlet property="dashbardUserName" destination="OMW-Zh-2jt" id="keb-Is-0Sk"/>
+                        <outlet property="lblTIming" destination="fBQ-2F-Gfj" id="D8Z-SY-Abb"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="gjI-Ro-VKp" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1256.8" y="633.73313343328346"/>
+        </scene>
+        <!--Subscriptions-->
+        <scene sceneID="F6b-9C-28I">
+            <objects>
+                <viewControllerPlaceholder storyboardName="Subscriptions" id="9ge-VQ-XJh" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2A8-1t-0wz" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="656" y="175"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="home-pageimg.png" width="348" height="144"/>
+    </resources>
+</document>
